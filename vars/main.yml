@@ -1,0 +1,13 @@
+---
+# Install packages
+install_packages:
+  - locales
+  - mc
+  - net-tools
+  - traceroute
+  - htop
+  - iotop
+  - nload
+  - lsof
+  - iptables
+  - iptables-persistent

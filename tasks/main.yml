@@ -1,0 +1,61 @@
+---
+- name: Ubuntu_init | apt-get update
+  ansible.builtin.apt:
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Ubuntu_init | Update all packages
+  ansible.builtin.apt:
+    name: "*"
+    state: latest
+  when: update_all_packages
+
+- name: Ubuntu_init | Install net-packages, mc
+  ansible.builtin.apt:
+    pkg: "{{ install_packages }}"
+    state: latest
+
+- name: Ubuntu_init | Update timezone to {{ set_timezone }}
+  community.general.timezone:
+    name: "{{ set_timezone }}"
+
+- name: Ubuntu_init | Set symlink to /var/log/
+  ansible.builtin.file:
+    src: /var/log
+    dest: /log
+    state: link
+    owner: root
+    group: root
+
+- name: Ubuntu_init | Set net.ipv4.ip_forward=1
+  ansible.posix.sysctl:
+    name: net.ipv4.ip_forward
+    value: '1'
+    sysctl_set: true
+    state: present
+    reload: true
+  when: set_ip_forward
+
+- name: Ubuntu_init | Ensure a locale exists
+  community.general.locale_gen:
+    name: "{{ set_locale }}"
+    state: present
+
+- name: Ubuntu_init | Get current locale
+  ansible.builtin.command: localectl status
+  register: locale_status
+  changed_when: false
+
+- name: Ubuntu_init | Parse 'LANG' from current locale
+  ansible.builtin.set_fact:
+    get_locale: >-
+      {%- set lang_match = locale_status.stdout | regex_search('LANG=(\S+)', '\\1') -%}
+      {{- lang_match[0] if lang_match else "None" -}}
+
+- name: Ubuntu_init | Show current locale
+  ansible.builtin.debug:
+    var: get_locale
+
+- name: Ubuntu_init | Set locale to {{ set_locale }}
+  ansible.builtin.command: localectl set-locale LANG={{ set_locale }}
+  changed_when: get_locale != set_locale

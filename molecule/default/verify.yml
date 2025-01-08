@@ -1,0 +1,64 @@
+---
+- name: Verify
+  hosts: all
+  gather_facts: true
+  vars_files:
+    - ../../defaults/main.yml
+    - ../../vars/main.yml
+
+  tasks:
+    - name: Ubuntu_init | Verify installed packages
+      ansible.builtin.package_facts:
+        manager: apt
+      register: package_facts
+
+    - name: Ubuntu_init | Check if required packages are installed
+      ansible.builtin.assert:
+        that: item in package_facts.ansible_facts.packages.keys()
+        msg: "Package {{ item }} is not installed"
+      loop: "{{ install_packages }}"
+
+    - name: Ubuntu_init | Verify timezone configuration
+      ansible.builtin.command:
+        timedatectl show
+      register: timezone_status
+      changed_when: false
+
+    - name: Ubuntu_init | Parse 'Timezone' from current configuration
+      ansible.builtin.set_fact:
+        get_timezone: >-
+          {%- set tz_match = timezone_status.stdout | regex_search('Timezone=(\S+)', '\\1') -%}
+          {{- tz_match[0] if tz_match else "None" -}}
+
+    - name: Ubuntu_init | Check if the correct timezone is set
+      ansible.builtin.assert:
+        that: get_timezone == set_timezone
+        msg: "Incorrect timezone, expected {{ set_timezone }}, found {{ get_timezone }}"
+
+    - name: Ubuntu_init | Verify net.ipv4.ip_forward setting
+      ansible.builtin.command:
+        cmd: 'cat /proc/sys/net/ipv4/ip_forward'
+      changed_when: false
+      register: ip_forward
+
+    - name: Ubuntu_init | Check if net.ipv4.ip_forward is set correctly
+      ansible.builtin.assert:
+        that: ip_forward.stdout == '1'
+        msg: "net.ipv4.ip_forward is not set to 1, found {{ ip_forward.stdout }}"
+      when: set_ip_forward
+
+    - name: Ubuntu_init | Verify locale configuration
+      ansible.builtin.command: localectl status
+      register: locale_status
+      changed_when: false
+
+    - name: Ubuntu_init | Parse 'LANG' from current locale
+      ansible.builtin.set_fact:
+        get_locale: >-
+          {%- set lang_match = locale_status.stdout | regex_search('LANG=(\S+)', '\\1') -%}
+          {{- lang_match[0] if lang_match else "None" -}}
+
+    - name: Ubuntu_init | Check if the correct locale is set
+      ansible.builtin.assert:
+        that: get_locale == set_locale
+        msg: "Incorrect locale, expected '{{ set_locale }}, found {{ get_locale }}'"

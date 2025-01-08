@@ -1,0 +1,13 @@
+---
+# Default timezone
+set_timezone: Europe/Moscow
+# set_timezone: Asia/Yekaterinburg
+
+# Default locale
+set_locale: ru_RU.UTF-8
+
+# Enable routing
+set_ip_forward: false
+
+# Update all packages
+update_all_packages: true
