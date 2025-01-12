@@ -10,6 +10,11 @@
     state: latest
   when: update_all_packages
 
+- name: Ubuntu_init | Remove old time packages
+  ansible.builtin.apt:
+    pkg: "{{ remove_packages }}"
+    state: absent
+
 - name: Ubuntu_init | Install net-packages, mc
   ansible.builtin.apt:
     pkg: "{{ install_packages }}"
@@ -18,6 +23,12 @@
 - name: Ubuntu_init | Update timezone to {{ set_timezone }}
   community.general.timezone:
     name: "{{ set_timezone }}"
+
+- name: Ubuntu_init | Enable systemd-timesyncd
+  ansible.builtin.systemd_service:
+    name: 'systemd-timesyncd.service'
+    enabled: true
+    state: started
 
 - name: Ubuntu_init | Set symlink to /var/log/
   ansible.builtin.file:

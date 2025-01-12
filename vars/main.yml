@@ -1,4 +1,9 @@
 ---
+# Remove packages
+remove_packages:
+  - ntpd
+  - chronyd
+
 # Install packages
 install_packages:
   - locales
@@ -11,3 +16,4 @@ install_packages:
   - lsof
   - iptables
   - iptables-persistent
+  - systemd-timesyncd
