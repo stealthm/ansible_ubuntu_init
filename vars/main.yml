@@ -6,14 +6,21 @@ remove_packages:
 
 # Install packages
 install_packages:
-  - locales
-  - mc
-  - net-tools
-  - traceroute
-  - htop
+  - fio
   - iotop
-  - nload
-  - lsof
   - iptables
   - iptables-persistent
+  - hdparm
+  - htop
+  - locales
+  - lsof
+  - mc
+  - nano
+  - net-tools
+  - nload
+  - sysbench
+  - sysstat
   - systemd-timesyncd
+  - traceroute
+  - tree
+  - wget
